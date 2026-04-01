@@ -66,6 +66,7 @@ This project uses Nix to provide a reproducible toolchain.
 
 ```bash
 nix develop
+# or use direnv
 ```
 
 ### Build everything
