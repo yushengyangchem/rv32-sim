@@ -1,0 +1,12 @@
+.direnv
+.codex
+.pre-commit-config.yaml
+
+rv32-sim
+kernel-demo
+kernel-tests
+host-tests
+simv-tb
+
+*.elf
+*.bin
