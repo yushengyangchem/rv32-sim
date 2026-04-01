@@ -1,12 +1,14 @@
 .direnv
 .codex
 .pre-commit-config.yaml
+.cache
 
 rv32-sim
 kernel-demo
 kernel-tests
 host-tests
 simv-tb
+compile_commands.json
 
 *.elf
 *.bin

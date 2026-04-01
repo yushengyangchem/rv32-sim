@@ -75,6 +75,14 @@ nix develop
 make all
 ```
 
+### Generate `compile_commands.json` (for clangd)
+
+`bear` is already included in the Nix environment:
+
+```bash
+bear -- make all
+```
+
 ### Run the RV32I simulator
 
 ```bash
