@@ -30,7 +30,7 @@ The behavioral model writes one of these values to `rd`:
 The C helper `hw_accel_status_name()` maps the numeric code to a readable
 string for debug logs.
 The same numeric constants are mirrored in
-[accel_layout_pkg.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/include/accel_layout_pkg.sv)
+[accel_layout_pkg.sv](../rtl/include/accel_layout_pkg.sv)
 so RTL and testbench code can check the same contract.
 
 ## Demo Memory Map
@@ -48,8 +48,8 @@ so RTL and testbench code can check the same contract.
 - `0x00005300`: SDPA V
 - `0x00005400`: SDPA output
 
-These constants live in [accel_layout.h](/home/yangys/repos/mine/github/rv32-sim/include/accel_layout.h).
-The matching SystemVerilog package lives in [accel_layout_pkg.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/include/accel_layout_pkg.sv).
+These constants live in [accel_layout.h](../include/accel_layout.h).
+The matching SystemVerilog package lives in [accel_layout_pkg.sv](../rtl/include/accel_layout_pkg.sv).
 
 ## Descriptor Formats
 
@@ -148,8 +148,8 @@ The SystemVerilog package provides:
 
 ## Testbench Memory Init
 
-A ready-to-use memory image is available at [demo_mem_init.memh](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/demo_mem_init.memh).
-You can regenerate it with [gen_demo_mem_init.sh](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/gen_demo_mem_init.sh) or `make gen-tb-init`.
+A ready-to-use memory image is available at [demo_mem_init.memh](../rtl/tb/demo_mem_init.memh).
+You can regenerate it with [gen_demo_mem_init.sh](../rtl/tb/gen_demo_mem_init.sh) or `make gen-tb-init`.
 
 The file uses `readmemh` syntax with `@<word_addr>` jumps, so a word-addressed memory model can load it directly.
 
@@ -157,8 +157,8 @@ The file uses `readmemh` syntax with `@<word_addr>` jumps, so a word-addressed m
 
 A minimal SystemVerilog skeleton is available at:
 
-- [simple_ram.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/simple_ram.sv)
-- [accel_tb.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/accel_tb.sv)
+- [simple_ram.sv](../rtl/tb/simple_ram.sv)
+- [accel_tb.sv](../rtl/tb/accel_tb.sv)
 
 The skeleton currently provides:
 
@@ -167,7 +167,7 @@ The skeleton currently provides:
 - `accel_layout_pkg` imports
 - placeholder checkpoints for GeMM, Reduction, and SDPA output regions
 
-The repository now also includes a minimal fake DUT example at [fake_gemm_dut.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/examples/fake_gemm_dut.sv).
+The repository now also includes a minimal fake DUT example at [fake_gemm_dut.sv](../rtl/examples/fake_gemm_dut.sv).
 It reads the GeMM descriptor, rejects simple malformed cases with shared status
 codes, and for the valid demo case writes the expected result words into the
 output buffer and returns `HW_ACCEL_STATUS_OK`.
