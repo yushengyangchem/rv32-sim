@@ -58,6 +58,35 @@ The project is in a solid "learning-project but already structured" state:
 - host tests cover both the pure kernel outputs and the simulated accelerator memory-writeback flow
 - RTL-facing address/descriptor definitions are mirrored in both C and SystemVerilog
 
+## Good Stopping Point
+
+This repository is already enough to count as the "first project" in a larger
+CPU-to-accelerator learning roadmap.
+
+You can reasonably stop here and move on when these conditions are true:
+
+- the C simulator can load and run a tiny bare-metal RISC-V test program
+- the fetch / decode / execute path is easy to explain from memory
+- `GeMM`, `Reduction`, and `SDPA` all run as plain C reference kernels
+- the accelerator path is descriptor-driven instead of hard-coded to one shape
+- host-side tests pass for both kernel math and simulated memory writeback
+- the README explains how this project connects to later Verilog CPU and
+  accelerator work
+
+In other words: this project does not need to become a full RV32I simulator or
+an optimized AI runtime. Its job is to give you a clean software foundation for
+the later Verilog projects.
+
+### Optional Polishing Only
+
+The items below are useful, but they are no longer required for this project to
+be considered complete as "Project 1":
+
+- add a few more RV32I instructions and instruction-level tests
+- add CI so host builds and tests run automatically
+- add more kernel edge-case coverage
+- improve docs with diagrams, traces, or performance counters
+
 ## Build And Run
 
 ### Prerequisites
@@ -131,6 +160,41 @@ For RTL and testbench work, the SystemVerilog mirror is [accel_layout_pkg.sv](rt
 For memory preload in simulation, use [demo_mem_init.memh](rtl/tb/demo_mem_init.memh) or regenerate it with `make gen-tb-init`.
 A minimal testbench skeleton is available in [accel_tb.sv](rtl/tb/accel_tb.sv) with RAM in [simple_ram.sv](rtl/tb/simple_ram.sv).
 There is also a runnable fake DUT example in [fake_gemm_dut.sv](rtl/examples/fake_gemm_dut.sv); after `nix develop`, run `make sim-tb`.
+
+## Project Shape
+
+```text
+           +----------------------+
+           | RISC-V test binary   |
+           +----------+-----------+
+                      |
+                      v
+           +----------------------+
+           | C RV32I simulator    |
+           | fetch/decode/execute |
+           +----------+-----------+
+                      |
+          custom-0    v
+           +----------------------+
+           | Descriptor-driven    |
+           | accelerator hooks    |
+           +----------+-----------+
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+      +------+   +---------+   +------+
+      | GeMM |   | SDPA    |   | Red. |
+      +------+   +---------+   +------+
+          |           |           |
+          +-----------+-----------+
+                      |
+                      v
+           +----------------------+
+           | Shared layout/docs   |
+           | for later RTL work   |
+           +----------------------+
+```
 
 ## Suggested Roadmap
 
