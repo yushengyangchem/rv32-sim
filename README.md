@@ -117,12 +117,12 @@ This builds and runs the host-side accelerator behavior test for:
 
 ## Shared Interface
 
-The accelerator memory map and descriptor structs are shared in [accel_layout.h](/home/yangys/repos/mine/github/rv32-sim/include/accel_layout.h).
-The matching interface notes are documented in [accel_interface.md](/home/yangys/repos/mine/github/rv32-sim/docs/accel_interface.md).
-For RTL and testbench work, the SystemVerilog mirror is [accel_layout_pkg.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/include/accel_layout_pkg.sv).
-For memory preload in simulation, use [demo_mem_init.memh](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/demo_mem_init.memh) or regenerate it with `make gen-tb-init`.
-A minimal testbench skeleton is available in [accel_tb.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/accel_tb.sv) with RAM in [simple_ram.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/tb/simple_ram.sv).
-There is also a runnable fake DUT example in [fake_gemm_dut.sv](/home/yangys/repos/mine/github/rv32-sim/rtl/examples/fake_gemm_dut.sv); after `nix develop`, run `make sim-tb`.
+The accelerator memory map and descriptor structs are shared in [accel_layout.h](include/accel_layout.h).
+The matching interface notes are documented in [accel_interface.md](docs/accel_interface.md).
+For RTL and testbench work, the SystemVerilog mirror is [accel_layout_pkg.sv](rtl/include/accel_layout_pkg.sv).
+For memory preload in simulation, use [demo_mem_init.memh](rtl/tb/demo_mem_init.memh) or regenerate it with `make gen-tb-init`.
+A minimal testbench skeleton is available in [accel_tb.sv](rtl/tb/accel_tb.sv) with RAM in [simple_ram.sv](rtl/tb/simple_ram.sv).
+There is also a runnable fake DUT example in [fake_gemm_dut.sv](rtl/examples/fake_gemm_dut.sv); after `nix develop`, run `make sim-tb`.
 
 ## Suggested Roadmap
 
