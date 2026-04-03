@@ -1,23 +1,16 @@
 #include "cpu_core.h"
 #include "hw_accel.h"
-#include "kernels.h"
 #include "memory.h"
 #include <stdio.h>
 #include <string.h>
 
 int main(int argc, char **argv) {
-  if (argc >= 2 && strcmp(argv[1], "--demo-kernels") == 0) {
-    run_kernel_demo();
-    return 0;
-  }
-
   printf("========================================\n");
   printf(" RV32I Software Simulator + AI Kernels  \n");
   printf("========================================\n");
 
   if (argc < 2) {
     printf("Usage: %s <riscv_binary.bin>\n", argv[0]);
-    printf("   or: %s --demo-kernels\n", argv[0]);
     return 1;
   }
 

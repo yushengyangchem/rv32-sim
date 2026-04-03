@@ -31,7 +31,7 @@ SRC_TARGET = tests/start.S tests/test_accels.c
 ELF_TARGET = tests/test_accels.elf
 BIN_TARGET = tests/test_accels.bin
 
-.PHONY: all clean run run-kernels demo test-kernels test gen-tb-init sim-tb
+.PHONY: all clean run run-kernels test-kernels test gen-tb-init sim-tb
 
 all: $(BIN_HOST) $(BIN_KERNEL_DEMO) $(BIN_KERNEL_TESTS) $(BIN_HOST_TESTS) $(BIN_TARGET)
 
@@ -69,9 +69,6 @@ clean:
 # Convenience target to build and run immediately
 run: all
 	./$(BIN_HOST) $(BIN_TARGET)
-
-demo: $(BIN_HOST)
-	./$(BIN_HOST) --demo-kernels
 
 run-kernels: $(BIN_KERNEL_DEMO)
 	./$(BIN_KERNEL_DEMO)
