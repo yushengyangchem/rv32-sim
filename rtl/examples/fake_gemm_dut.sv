@@ -101,28 +101,28 @@ module fake_gemm_dut (
         WRITE_0: begin
           mem_we <= 1'b1;
           mem_addr <= HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd0;
-          mem_wdata <= 32'h00000013;
+          mem_wdata <= 32'h0000003A;
           state <= WRITE_1;
         end
 
         WRITE_1: begin
           mem_we <= 1'b1;
           mem_addr <= HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd4;
-          mem_wdata <= 32'h00000016;
+          mem_wdata <= 32'h00000040;
           state <= WRITE_2;
         end
 
         WRITE_2: begin
           mem_we <= 1'b1;
           mem_addr <= HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd8;
-          mem_wdata <= 32'h0000002B;
+          mem_wdata <= 32'h0000008B;
           state <= WRITE_3;
         end
 
         WRITE_3: begin
           mem_we <= 1'b1;
           mem_addr <= HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd12;
-          mem_wdata <= 32'h00000032;
+          mem_wdata <= 32'h0000009A;
           state <= FINISH;
         end
 

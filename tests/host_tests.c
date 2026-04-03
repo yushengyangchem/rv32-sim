@@ -13,10 +13,10 @@ static bool nearly_equal(float actual, float expected, float tolerance) {
 
 static bool test_hw_accel_gemm(void) {
   const int32_t expected[4] = {
-      19,
-      22,
-      43,
-      50,
+      58,
+      64,
+      139,
+      154,
   };
 
   mem_reset();

@@ -145,13 +145,13 @@ module accel_tb;
     begin
       $display("[TB] Checking fake GeMM DUT success path.");
       check_word("GeMM C[0][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd0,
-                 32'h00000013);
+                 32'h0000003A);
       check_word("GeMM C[0][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd4,
-                 32'h00000016);
+                 32'h00000040);
       check_word("GeMM C[1][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd8,
-                 32'h0000002B);
+                 32'h0000008B);
       check_word("GeMM C[1][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd12,
-                 32'h00000032);
+                 32'h0000009A);
       if (status !== HW_ACCEL_STATUS_OK) begin
         $error("[TB] Fake GeMM DUT status mismatch: got 0x%08h expected 0x%08h",
                status, HW_ACCEL_STATUS_OK);

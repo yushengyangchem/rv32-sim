@@ -128,18 +128,12 @@ const char *hw_accel_status_name(uint32_t status) {
 void hw_accel_init_demo_data(void) {
   const uint32_t gemm_rows = 2u;
   const uint32_t gemm_cols = 2u;
-  const uint32_t gemm_depth = 2u;
+  const uint32_t gemm_depth = 3u;
   const int32_t matrix_a[] = {
-      1,
-      2,
-      3,
-      4,
+      1, 2, 3, 4, 5, 6,
   };
   const int32_t matrix_b[] = {
-      5,
-      6,
-      7,
-      8,
+      7, 8, 9, 10, 11, 12,
   };
   const float reduction_input[REDUCTION_DEMO_LEN] = {
       1.0f, -2.0f, 3.5f, 4.0f, -1.5f, 2.0f,
