@@ -46,22 +46,21 @@ static bool multiply_would_overflow_size(size_t a, size_t b) {
 
 static bool address_range_valid(uint32_t base_addr, size_t count,
                                 size_t elem_size) {
-  size_t total_bytes = 0;
-
-  if (count == 0u) {
+  if (count == 0u || elem_size == 0u) {
     return true;
+  }
+
+  size_t addr = base_addr;
+
+  if (addr >= MEMORY_SIZE) {
+    return false;
   }
 
   if (multiply_would_overflow_size(count, elem_size)) {
     return false;
   }
 
-  total_bytes = count * elem_size;
-  if ((size_t)base_addr >= MEMORY_SIZE) {
-    return false;
-  }
-
-  return total_bytes <= (MEMORY_SIZE - (size_t)base_addr);
+  return (count * elem_size) <= (MEMORY_SIZE - addr);
 }
 
 static void print_matrix(const char *name, const int32_t *matrix, size_t rows,
