@@ -1,14 +1,14 @@
 module simple_ram #(
-  parameter int unsigned WORDS = 65536
+    parameter int unsigned WORDS = 65536
 ) (
-  input  logic        clk,
-  input  logic        we,
-  input  logic [31:0] addr,
-  input  logic [31:0] wdata,
-  output logic [31:0] rdata
+    input  logic        clk,
+    input  logic        we,
+    input  logic [31:0] addr,
+    input  logic [31:0] wdata,
+    output logic [31:0] rdata
 );
 
-  logic [31:0] mem [0:WORDS-1];
+  logic [31:0] mem[0:WORDS-1];
 
   wire [31:0] word_addr = addr >> 2;
 

@@ -1,13 +1,13 @@
 module fake_gemm_dut (
-  input  logic        clk,
-  input  logic        rst_n,
-  input  logic        start,
-  input  logic [31:0] mem_rdata,
-  output logic        done,
-  output logic [31:0] status,
-  output logic        mem_we,
-  output logic [31:0] mem_addr,
-  output logic [31:0] mem_wdata
+    input  logic        clk,
+    input  logic        rst_n,
+    input  logic        start,
+    input  logic [31:0] mem_rdata,
+    output logic        done,
+    output logic [31:0] status,
+    output logic        mem_we,
+    output logic [31:0] mem_addr,
+    output logic [31:0] mem_wdata
 );
   import accel_layout_pkg::*;
 
@@ -43,7 +43,7 @@ module fake_gemm_dut (
       mem_wdata <= '0;
     end else begin
       mem_we <= 1'b0;
-      done <= 1'b0;
+      done   <= 1'b0;
 
       case (state)
         IDLE: begin
@@ -85,14 +85,14 @@ module fake_gemm_dut (
 
         CHECK_DESC: begin
           if (desc_rows == 32'd0 || desc_cols == 32'd0 || mem_rdata == 32'd0) begin
-            done <= 1'b1;
+            done   <= 1'b1;
             status <= HW_ACCEL_STATUS_ERR_ZERO_DIMENSION;
-            state <= IDLE;
+            state  <= IDLE;
           end else if (desc_b_addr != HW_ACCEL_GEMM_DEMO_B_ADDR ||
                        desc_output_addr != HW_ACCEL_GEMM_DEMO_C_ADDR) begin
-            done <= 1'b1;
+            done   <= 1'b1;
             status <= HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
-            state <= IDLE;
+            state  <= IDLE;
           end else begin
             state <= WRITE_0;
           end
@@ -127,14 +127,14 @@ module fake_gemm_dut (
         end
 
         FINISH: begin
-          done <= 1'b1;
+          done   <= 1'b1;
           status <= HW_ACCEL_STATUS_OK;
-          state <= IDLE;
+          state  <= IDLE;
         end
 
         default: begin
           status <= '0;
-          state <= IDLE;
+          state  <= IDLE;
         end
       endcase
     end
