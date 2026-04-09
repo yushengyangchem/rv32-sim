@@ -17,7 +17,12 @@ int cpu_step(CPU_State *cpu) {
     return 0;
 
   // 1. FETCH
-  uint32_t inst = mem_read_32(cpu->pc);
+  uint32_t inst = 0;
+  if (mem_read_32(cpu->pc, &inst) != 0) {
+    printf("[CPU] Memory read error at PC 0x%08X\n", cpu->pc);
+    cpu->halted = true;
+    return -1;
+  }
   if (inst == 0) {
     printf("[CPU] Execution halted (fetched 0x00000000).\n");
     cpu->halted = true;
@@ -47,7 +52,14 @@ int cpu_step(CPU_State *cpu) {
     uint32_t target_addr = cpu->regs[rs1] + offset;
 
     if (funct3 == 2) { // LW (Load Word - 32 bits)
-      uint32_t val = mem_read_32(target_addr);
+      uint32_t val = 0;
+      if (mem_read_32(target_addr, &val) != 0) {
+        printf("[CPU] PC: 0x%08X | LW memory read error at 0x%08X\n", cpu->pc,
+               target_addr);
+        cpu->halted = true;
+        cpu->pc = next_pc;
+        return -1;
+      }
       if (rd != 0)
         cpu->regs[rd] = val;
       printf("[CPU] PC: 0x%08X | LW x%d from Mem[0x%08X]\n", cpu->pc, rd,
@@ -116,7 +128,13 @@ int cpu_step(CPU_State *cpu) {
     uint32_t target_addr = cpu->regs[rs1] + offset;
 
     if (funct3 == 2) { // SW (Store Word - 32 bits)
-      mem_write_32(target_addr, cpu->regs[rs2]);
+      if (mem_write_32(target_addr, cpu->regs[rs2]) != 0) {
+        printf("[CPU] PC: 0x%08X | SW memory write error at 0x%08X\n", cpu->pc,
+               target_addr);
+        cpu->halted = true;
+        cpu->pc = next_pc;
+        return -1;
+      }
       printf("[CPU] PC: 0x%08X | SW x%d into Mem[0x%08X]\n", cpu->pc, rs2,
              target_addr);
     } else {

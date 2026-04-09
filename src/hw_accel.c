@@ -11,33 +11,44 @@
 #define SDPA_DEMO_DEPTH 2u
 #define SDPA_DEMO_VALUE_DIM 2u
 
-static float read_f32(uint32_t addr) {
-  uint32_t bits = mem_read_32(addr);
-  float value = 0.0f;
-  memcpy(&value, &bits, sizeof(value));
-  return value;
+static int read_f32(uint32_t addr, float *out) {
+  uint32_t bits = 0;
+  int rc = mem_read_32(addr, &bits);
+  if (rc != 0) {
+    return rc;
+  }
+  memcpy(out, &bits, sizeof(*out));
+  return 0;
 }
 
-static void write_f32(uint32_t addr, float value) {
+static int write_f32(uint32_t addr, float value) {
   uint32_t bits = 0;
   memcpy(&bits, &value, sizeof(bits));
-  mem_write_32(addr, bits);
+  return mem_write_32(addr, bits);
 }
 
-static void load_matrix_from_mem(uint32_t base_addr, int32_t *matrix,
-                                 size_t count) {
-  for (size_t i = 0; i < count; i++) {
-    matrix[i] =
-        (int32_t)mem_read_32(base_addr + (uint32_t)(i * sizeof(uint32_t)));
-  }
-}
-
-static void store_matrix_to_mem(uint32_t base_addr, const int32_t *matrix,
+static int load_matrix_from_mem(uint32_t base_addr, int32_t *matrix,
                                 size_t count) {
   for (size_t i = 0; i < count; i++) {
-    mem_write_32(base_addr + (uint32_t)(i * sizeof(uint32_t)),
-                 (uint32_t)matrix[i]);
+    int rc = mem_read_32(base_addr + (uint32_t)(i * sizeof(uint32_t)),
+                         (uint32_t *)&matrix[i]);
+    if (rc != 0) {
+      return rc;
+    }
   }
+  return 0;
+}
+
+static int store_matrix_to_mem(uint32_t base_addr, const int32_t *matrix,
+                               size_t count) {
+  for (size_t i = 0; i < count; i++) {
+    int rc = mem_write_32(base_addr + (uint32_t)(i * sizeof(uint32_t)),
+                          (uint32_t)matrix[i]);
+    if (rc != 0) {
+      return rc;
+    }
+  }
+  return 0;
 }
 
 static bool multiply_would_overflow_size(size_t a, size_t b) {
@@ -124,7 +135,7 @@ const char *hw_accel_status_name(uint32_t status) {
   }
 }
 
-void hw_accel_init_demo_data(void) {
+int hw_accel_init_demo_data(void) {
   const uint32_t gemm_rows = 2u;
   const uint32_t gemm_cols = 2u;
   const uint32_t gemm_depth = 3u;
@@ -156,48 +167,123 @@ void hw_accel_init_demo_data(void) {
       4.0f,
   };
 
-  store_matrix_to_mem(HW_ACCEL_GEMM_DEMO_A_ADDR, matrix_a,
-                      (size_t)gemm_rows * gemm_depth);
-  store_matrix_to_mem(HW_ACCEL_GEMM_DEMO_B_ADDR, matrix_b,
-                      (size_t)gemm_depth * gemm_cols);
+  int rc;
+
+  rc = store_matrix_to_mem(HW_ACCEL_GEMM_DEMO_A_ADDR, matrix_a,
+                           (size_t)gemm_rows * gemm_depth);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = store_matrix_to_mem(HW_ACCEL_GEMM_DEMO_B_ADDR, matrix_b,
+                           (size_t)gemm_depth * gemm_cols);
+  if (rc != 0) {
+    return rc;
+  }
 
   for (size_t i = 0; i < (size_t)gemm_rows * gemm_cols; i++) {
-    mem_write_32(HW_ACCEL_GEMM_DEMO_C_ADDR + (uint32_t)(i * sizeof(uint32_t)),
-                 0);
+    rc = mem_write_32(
+        HW_ACCEL_GEMM_DEMO_C_ADDR + (uint32_t)(i * sizeof(uint32_t)), 0);
+    if (rc != 0) {
+      return rc;
+    }
   }
-  mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR, HW_ACCEL_GEMM_DEMO_B_ADDR);
-  mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 4u, HW_ACCEL_GEMM_DEMO_C_ADDR);
-  mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 8u, gemm_rows);
-  mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 12u, gemm_cols);
-  mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 16u, gemm_depth);
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR, HW_ACCEL_GEMM_DEMO_B_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 4u,
+                    HW_ACCEL_GEMM_DEMO_C_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 8u, gemm_rows);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 12u, gemm_cols);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 16u, gemm_depth);
+  if (rc != 0) {
+    return rc;
+  }
 
   for (size_t i = 0; i < REDUCTION_DEMO_LEN; i++) {
-    write_f32(HW_ACCEL_REDUCTION_DEMO_INPUT_ADDR +
-                  (uint32_t)(i * sizeof(float)),
-              reduction_input[i]);
+    rc = write_f32(HW_ACCEL_REDUCTION_DEMO_INPUT_ADDR +
+                       (uint32_t)(i * sizeof(float)),
+                   reduction_input[i]);
+    if (rc != 0) {
+      return rc;
+    }
   }
-  mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR, REDUCTION_DEMO_LEN);
-  mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR + 4u,
-               HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR);
-  write_f32(HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR, 0.0f);
+  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR, REDUCTION_DEMO_LEN);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR + 4u,
+                    HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = write_f32(HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR, 0.0f);
+  if (rc != 0) {
+    return rc;
+  }
 
   for (size_t i = 0; i < SDPA_DEMO_SEQ_LEN * SDPA_DEMO_DEPTH; i++) {
-    write_f32(HW_ACCEL_SDPA_DEMO_Q_ADDR + (uint32_t)(i * sizeof(float)), q[i]);
-    write_f32(HW_ACCEL_SDPA_DEMO_K_ADDR + (uint32_t)(i * sizeof(float)), k[i]);
+    rc = write_f32(HW_ACCEL_SDPA_DEMO_Q_ADDR + (uint32_t)(i * sizeof(float)),
+                   q[i]);
+    if (rc != 0) {
+      return rc;
+    }
+    rc = write_f32(HW_ACCEL_SDPA_DEMO_K_ADDR + (uint32_t)(i * sizeof(float)),
+                   k[i]);
+    if (rc != 0) {
+      return rc;
+    }
   }
   for (size_t i = 0; i < SDPA_DEMO_SEQ_LEN * SDPA_DEMO_VALUE_DIM; i++) {
-    write_f32(HW_ACCEL_SDPA_DEMO_V_ADDR + (uint32_t)(i * sizeof(float)), v[i]);
-    write_f32(HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + (uint32_t)(i * sizeof(float)),
-              0.0f);
+    rc = write_f32(HW_ACCEL_SDPA_DEMO_V_ADDR + (uint32_t)(i * sizeof(float)),
+                   v[i]);
+    if (rc != 0) {
+      return rc;
+    }
+    rc = write_f32(
+        HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + (uint32_t)(i * sizeof(float)), 0.0f);
+    if (rc != 0) {
+      return rc;
+    }
   }
 
-  mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR, HW_ACCEL_SDPA_DEMO_K_ADDR);
-  mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 4u, HW_ACCEL_SDPA_DEMO_V_ADDR);
-  mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 8u,
-               HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR);
-  mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 12u, SDPA_DEMO_SEQ_LEN);
-  mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 16u, SDPA_DEMO_DEPTH);
-  mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 20u, SDPA_DEMO_VALUE_DIM);
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR, HW_ACCEL_SDPA_DEMO_K_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 4u,
+                    HW_ACCEL_SDPA_DEMO_V_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 8u,
+                    HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 12u, SDPA_DEMO_SEQ_LEN);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 16u, SDPA_DEMO_DEPTH);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 20u, SDPA_DEMO_VALUE_DIM);
+  if (rc != 0) {
+    return rc;
+  }
+
+  return 0;
 }
 
 uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
@@ -208,12 +294,45 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
   size_t a_count = 0;
   size_t b_count = 0;
   size_t c_count = 0;
+  int rc;
 
-  desc.b_addr = mem_read_32(desc_addr);
-  desc.output_addr = mem_read_32(desc_addr + 4u);
-  desc.rows = mem_read_32(desc_addr + 8u);
-  desc.cols = mem_read_32(desc_addr + 12u);
-  desc.depth = mem_read_32(desc_addr + 16u);
+  desc.b_addr = 0;
+  desc.output_addr = 0;
+  desc.rows = 0;
+  desc.cols = 0;
+  desc.depth = 0;
+  rc = mem_read_32(desc_addr, &desc.b_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  rc = mem_read_32(desc_addr + 4u, &desc.output_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 8u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.rows = val;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 12u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.cols = val;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 16u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.depth = val;
+  }
 
   if (desc.rows == 0u || desc.cols == 0u || desc.depth == 0u) {
     printf("[HW ACCEL] GeMM descriptor has zero dimension.\n");
@@ -249,10 +368,28 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
     return HW_ACCEL_STATUS_ERR_ALLOCATION;
   }
 
-  load_matrix_from_mem(matrix_a_addr, matrix_a, a_count);
-  load_matrix_from_mem(desc.b_addr, matrix_b, b_count);
+  rc = load_matrix_from_mem(matrix_a_addr, matrix_a, a_count);
+  if (rc != 0) {
+    free(matrix_a);
+    free(matrix_b);
+    free(matrix_c);
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  rc = load_matrix_from_mem(desc.b_addr, matrix_b, b_count);
+  if (rc != 0) {
+    free(matrix_a);
+    free(matrix_b);
+    free(matrix_c);
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
   gemm_i32(matrix_a, matrix_b, matrix_c, desc.rows, desc.cols, desc.depth);
-  store_matrix_to_mem(desc.output_addr, matrix_c, c_count);
+  rc = store_matrix_to_mem(desc.output_addr, matrix_c, c_count);
+  if (rc != 0) {
+    free(matrix_a);
+    free(matrix_b);
+    free(matrix_c);
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
 
   printf("\n==================================================\n");
   printf("[HW ACCEL] Custom GeMM Instruction Triggered!\n");
@@ -279,9 +416,18 @@ uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
   ReductionDescriptor desc;
   float *input = NULL;
   float result = 0.0f;
+  int rc;
 
-  desc.len = mem_read_32(desc_addr);
-  desc.output_addr = mem_read_32(desc_addr + 4u);
+  desc.len = 0;
+  desc.output_addr = 0;
+  rc = mem_read_32(desc_addr, &desc.len);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  rc = mem_read_32(desc_addr + 4u, &desc.output_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
 
   if (desc.len == 0u) {
     printf("[HW ACCEL] Reduction descriptor has zero length.\n");
@@ -302,11 +448,19 @@ uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
   }
 
   for (size_t i = 0; i < desc.len; i++) {
-    input[i] = read_f32(input_addr + (uint32_t)(i * sizeof(float)));
+    rc = read_f32(input_addr + (uint32_t)(i * sizeof(float)), &input[i]);
+    if (rc != 0) {
+      free(input);
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
   }
 
   result = reduction_sum_f32(input, desc.len);
-  write_f32(desc.output_addr, result);
+  rc = write_f32(desc.output_addr, result);
+  if (rc != 0) {
+    free(input);
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
 
   printf("\n==================================================\n");
   printf("[HW ACCEL] Custom Reduction Instruction Triggered!\n");
@@ -332,13 +486,50 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   float *weight_scratch = NULL;
   size_t qk_count = 0;
   size_t v_count = 0;
+  int rc;
 
-  desc.k_addr = mem_read_32(desc_addr);
-  desc.v_addr = mem_read_32(desc_addr + 4u);
-  desc.output_addr = mem_read_32(desc_addr + 8u);
-  desc.seq_len = mem_read_32(desc_addr + 12u);
-  desc.depth = mem_read_32(desc_addr + 16u);
-  desc.value_dim = mem_read_32(desc_addr + 20u);
+  desc.k_addr = 0;
+  desc.v_addr = 0;
+  desc.output_addr = 0;
+  desc.seq_len = 0;
+  desc.depth = 0;
+  desc.value_dim = 0;
+  rc = mem_read_32(desc_addr, &desc.k_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  rc = mem_read_32(desc_addr + 4u, &desc.v_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  rc = mem_read_32(desc_addr + 8u, &desc.output_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 12u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.seq_len = val;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 16u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.depth = val;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 20u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.value_dim = val;
+  }
 
   if (desc.seq_len == 0u || desc.depth == 0u || desc.value_dim == 0u) {
     printf("[HW ACCEL] SDPA descriptor has zero dimension.\n");
@@ -380,18 +571,54 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   }
 
   for (size_t i = 0; i < qk_count; i++) {
-    q[i] = read_f32(q_addr + (uint32_t)(i * sizeof(float)));
-    k[i] = read_f32(desc.k_addr + (uint32_t)(i * sizeof(float)));
+    rc = read_f32(q_addr + (uint32_t)(i * sizeof(float)), &q[i]);
+    if (rc != 0) {
+      free(q);
+      free(k);
+      free(v);
+      free(output);
+      free(score_scratch);
+      free(weight_scratch);
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    rc = read_f32(desc.k_addr + (uint32_t)(i * sizeof(float)), &k[i]);
+    if (rc != 0) {
+      free(q);
+      free(k);
+      free(v);
+      free(output);
+      free(score_scratch);
+      free(weight_scratch);
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
   }
   for (size_t i = 0; i < v_count; i++) {
-    v[i] = read_f32(desc.v_addr + (uint32_t)(i * sizeof(float)));
+    rc = read_f32(desc.v_addr + (uint32_t)(i * sizeof(float)), &v[i]);
+    if (rc != 0) {
+      free(q);
+      free(k);
+      free(v);
+      free(output);
+      free(score_scratch);
+      free(weight_scratch);
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
   }
 
   sdpa_f32(q, k, v, output, desc.seq_len, desc.depth, desc.value_dim,
            score_scratch, weight_scratch);
 
   for (size_t i = 0; i < v_count; i++) {
-    write_f32(desc.output_addr + (uint32_t)(i * sizeof(float)), output[i]);
+    rc = write_f32(desc.output_addr + (uint32_t)(i * sizeof(float)), output[i]);
+    if (rc != 0) {
+      free(q);
+      free(k);
+      free(v);
+      free(output);
+      free(score_scratch);
+      free(weight_scratch);
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
   }
 
   printf("\n==================================================\n");

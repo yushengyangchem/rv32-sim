@@ -22,7 +22,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  hw_accel_init_demo_data();
+  if (hw_accel_init_demo_data() != 0) {
+    return 1;
+  }
 
   CPU_State cpu;
   cpu_init(&cpu, entry_point);

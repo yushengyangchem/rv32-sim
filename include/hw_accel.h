@@ -13,7 +13,7 @@ typedef enum {
   HW_ACCEL_STATUS_ERR_ALLOCATION = 6u,
 } HwAccelStatus;
 
-void hw_accel_init_demo_data(void);
+int hw_accel_init_demo_data(void);
 uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr);
 uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr);
 uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr);

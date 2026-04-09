@@ -48,24 +48,27 @@ bool mem_load_bin(const char *filename, uint32_t base_addr) {
   return true;
 }
 
-uint32_t mem_read_32(uint32_t addr) {
+int mem_read_32(uint32_t addr, uint32_t *out) {
+  if (out == NULL) {
+    return -1;
+  }
   if (addr + 3 >= MEMORY_SIZE) {
     printf("[MEM] Warning: Out of bounds read at 0x%08X\n", addr);
-    return 0;
+    return -2;
   }
-  // Little-endian read
-  return (uint32_t)ram[addr] | ((uint32_t)ram[addr + 1] << 8) |
+  *out = (uint32_t)ram[addr] | ((uint32_t)ram[addr + 1] << 8) |
          ((uint32_t)ram[addr + 2] << 16) | ((uint32_t)ram[addr + 3] << 24);
+  return 0;
 }
 
-void mem_write_32(uint32_t addr, uint32_t value) {
+int mem_write_32(uint32_t addr, uint32_t value) {
   if (addr + 3 >= MEMORY_SIZE) {
     printf("[MEM] Warning: Out of bounds write at 0x%08X\n", addr);
-    return;
+    return -1;
   }
-  // Little-endian write
   ram[addr] = value & 0xFF;
   ram[addr + 1] = (value >> 8) & 0xFF;
   ram[addr + 2] = (value >> 16) & 0xFF;
   ram[addr + 3] = (value >> 24) & 0xFF;
+  return 0;
 }

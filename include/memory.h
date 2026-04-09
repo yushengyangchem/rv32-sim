@@ -9,7 +9,7 @@
 
 void mem_reset(void);
 bool mem_load_bin(const char *filename, uint32_t base_addr);
-uint32_t mem_read_32(uint32_t addr);
-void mem_write_32(uint32_t addr, uint32_t value);
+int mem_read_32(uint32_t addr, uint32_t *out);
+int mem_write_32(uint32_t addr, uint32_t value);
 
 #endif // MEMORY_H
