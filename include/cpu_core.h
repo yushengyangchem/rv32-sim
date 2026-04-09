@@ -12,7 +12,7 @@ typedef struct {
 } CPU_State;
 
 void cpu_init(CPU_State *cpu, uint32_t start_addr);
-void cpu_step(CPU_State *cpu);
-void cpu_run(CPU_State *cpu);
+int cpu_step(CPU_State *cpu);
+int cpu_run(CPU_State *cpu);
 
 #endif // CPU_CORE_H

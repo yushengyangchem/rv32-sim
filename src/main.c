@@ -28,7 +28,11 @@ int main(int argc, char **argv) {
   cpu_init(&cpu, entry_point);
 
   printf("\nStarting simulation...\n");
-  cpu_run(&cpu);
+  int rc = cpu_run(&cpu);
+  if (rc != 0) {
+    printf("Simulation aborted with error.\n");
+    return 1;
+  }
   printf("Simulation finished.\n");
 
   return 0;

@@ -12,16 +12,16 @@ void cpu_init(CPU_State *cpu, uint32_t start_addr) {
   printf("[CPU] Initialized. PC set to 0x%08X\n", cpu->pc);
 }
 
-void cpu_step(CPU_State *cpu) {
+int cpu_step(CPU_State *cpu) {
   if (cpu->halted)
-    return;
+    return 0;
 
   // 1. FETCH
   uint32_t inst = mem_read_32(cpu->pc);
   if (inst == 0) {
     printf("[CPU] Execution halted (fetched 0x00000000).\n");
     cpu->halted = true;
-    return;
+    return 0;
   }
 
   // 2. DECODE
@@ -64,7 +64,8 @@ void cpu_step(CPU_State *cpu) {
     if (funct7 != 0) {
       printf("[CPU] PC: 0x%08X | Trap: Illegal Custom Instruction\n", cpu->pc);
       cpu->halted = true;
-      break;
+      cpu->pc = next_pc;
+      return -1;
     }
 
     printf("[CPU] PC: 0x%08X | Decoding CUSTOM-0 Instruction...\n", cpu->pc);
@@ -78,7 +79,8 @@ void cpu_step(CPU_State *cpu) {
       printf("[CPU] PC: 0x%08X | Trap: Unknown Custom funct3 %u\n", cpu->pc,
              funct3);
       cpu->halted = true;
-      break;
+      cpu->pc = next_pc;
+      return -1;
     }
 
     printf("[CPU] PC: 0x%08X | CUSTOM-0 status = %u (%s)\n", cpu->pc, status,
@@ -166,14 +168,19 @@ void cpu_step(CPU_State *cpu) {
   default:
     printf("[CPU] PC: 0x%08X | Trap: Unknown Opcode 0x%02X\n", cpu->pc, opcode);
     cpu->halted = true;
-    break;
+    cpu->pc = next_pc;
+    return -1;
   }
 
   cpu->pc = next_pc;
+  return 0;
 }
 
-void cpu_run(CPU_State *cpu) {
+int cpu_run(CPU_State *cpu) {
   while (!cpu->halted) {
-    cpu_step(cpu);
+    int rc = cpu_step(cpu);
+    if (rc != 0)
+      return rc;
   }
+  return 0;
 }
