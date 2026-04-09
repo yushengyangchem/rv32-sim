@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MEMORY_SIZE (1024 * 1024) // 1MB of RAM for our simulator
+#define MEMORY_SIZE (1024 * 1024)
+#define MEMORY_PROG_REGION_END 0x00080000u
 
 void mem_reset(void);
 bool mem_load_bin(const char *filename, uint32_t base_addr);

@@ -21,6 +21,25 @@ bool mem_load_bin(const char *filename, uint32_t base_addr) {
     return false;
   }
 
+  fseek(file, 0, SEEK_END);
+  long file_size = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  if (file_size < 0) {
+    printf("[MEM] Error: Could not determine file size\n");
+    fclose(file);
+    return false;
+  }
+
+  if ((uint32_t)file_size > MEMORY_PROG_REGION_END ||
+      base_addr + (uint32_t)file_size > MEMORY_PROG_REGION_END) {
+    printf("[MEM] Error: Binary too large (%ld bytes), would overflow into "
+           "data region at 0x%08X\n",
+           file_size, MEMORY_PROG_REGION_END);
+    fclose(file);
+    return false;
+  }
+
   size_t bytes_read = fread(&ram[base_addr], 1, MEMORY_SIZE - base_addr, file);
   printf("[MEM] Loaded %zu bytes from %s starting at 0x%08X\n", bytes_read,
          filename, base_addr);
