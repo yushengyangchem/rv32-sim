@@ -3,19 +3,20 @@
 #include <stdint.h>
 
 #define CUST_GEMM(rd, rs1, rs2)                                                \
-  asm volatile(".insn r 0x0B, %3, 0, %0, %1, %2"                               \
-               : "=r"(rd)                                                      \
-               : "r"(rs1), "r"(rs2), "i"(HW_ACCEL_CUSTOM_FUNCT3_GEMM))
+  __asm__ __volatile__(".insn r 0x0B, %3, 0, %0, %1, %2"                       \
+                       : "=r"(rd)                                              \
+                       : "r"(rs1), "r"(rs2), "i"(HW_ACCEL_CUSTOM_FUNCT3_GEMM))
 
 #define CUST_REDUCTION(rd, rs1, rs2)                                           \
-  asm volatile(".insn r 0x0B, %3, 0, %0, %1, %2"                               \
-               : "=r"(rd)                                                      \
-               : "r"(rs1), "r"(rs2), "i"(HW_ACCEL_CUSTOM_FUNCT3_REDUCTION))
+  __asm__ __volatile__(".insn r 0x0B, %3, 0, %0, %1, %2"                       \
+                       : "=r"(rd)                                              \
+                       : "r"(rs1), "r"(rs2),                                   \
+                         "i"(HW_ACCEL_CUSTOM_FUNCT3_REDUCTION))
 
 #define CUST_SDPA(rd, rs1, rs2)                                                \
-  asm volatile(".insn r 0x0B, %3, 0, %0, %1, %2"                               \
-               : "=r"(rd)                                                      \
-               : "r"(rs1), "r"(rs2), "i"(HW_ACCEL_CUSTOM_FUNCT3_SDPA))
+  __asm__ __volatile__(".insn r 0x0B, %3, 0, %0, %1, %2"                       \
+                       : "=r"(rd)                                              \
+                       : "r"(rs1), "r"(rs2), "i"(HW_ACCEL_CUSTOM_FUNCT3_SDPA))
 
 int main() {
   uint32_t gemm_a_ptr = HW_ACCEL_GEMM_DEMO_A_ADDR;
