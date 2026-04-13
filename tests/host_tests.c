@@ -1,3 +1,4 @@
+#include "accel_layout.h"
 #include "hw_accel.h"
 #include "memory.h"
 #include <math.h>

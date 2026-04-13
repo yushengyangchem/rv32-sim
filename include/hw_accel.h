@@ -1,7 +1,6 @@
 #ifndef HW_ACCEL_H
 #define HW_ACCEL_H
 
-#include "accel_layout.h"
 #include <stdint.h>
 
 typedef enum {

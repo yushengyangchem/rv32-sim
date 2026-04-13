@@ -1,4 +1,5 @@
 #include "hw_accel.h"
+#include "accel_layout.h"
 #include "kernels.h"
 #include "memory.h"
 #include <stdbool.h>
