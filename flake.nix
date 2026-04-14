@@ -33,7 +33,6 @@
               gnumake
               clang-tools
               iverilog
-              verilator
               pkgsCross.riscv32-embedded.buildPackages.gcc
               bear
               verible
