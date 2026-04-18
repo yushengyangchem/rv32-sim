@@ -31,6 +31,7 @@
             packages = with pkgs; [
               gcc
               gnumake
+              just
               clang-tools
               iverilog
               pkgsCross.riscv32-embedded.buildPackages.gcc
