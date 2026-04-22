@@ -41,133 +41,106 @@ module accel_tb;
 
   function automatic logic [31:0] read_word(input logic [31:0] target_addr);
     logic [31:0] word_addr;
-    begin
-      word_addr = target_addr >> 2;
-      return ram_i.mem[word_addr];
-    end
+    word_addr = target_addr >> 2;
+    return ram_i.mem[word_addr];
   endfunction
 
   task automatic check_word(input string label, input logic [31:0] target_addr,
                             input logic [31:0] expected);
     logic [31:0] actual;
-    begin
-      actual = read_word(target_addr);
-      if (actual !== expected) begin
-        $error("%s mismatch at 0x%08h: got 0x%08h expected 0x%08h", label, target_addr, actual,
-               expected);
-      end else begin
-        $display("[TB PASS] %s at 0x%08h = 0x%08h", label, target_addr, actual);
-      end
+    actual = read_word(target_addr);
+    if (actual !== expected) begin
+      $error("%s mismatch at 0x%08h: got 0x%08h expected 0x%08h", label, target_addr, actual,
+             expected);
+    end else begin
+      $display("[TB PASS] %s at 0x%08h = 0x%08h", label, target_addr, actual);
     end
   endtask
 
   task automatic preload_demo_mem;
-    begin
-      $readmemh("rtl/tb/demo_mem_init.memh", ram_i.mem);
-      $display("[TB] Demo memory image loaded.");
-    end
+    $readmemh("rtl/tb/demo_mem_init.memh", ram_i.mem);
+    $display("[TB] Demo memory image loaded.");
   endtask
 
   task automatic write_word(input logic [31:0] target_addr, input logic [31:0] value);
     logic [31:0] word_addr;
-    begin
-      word_addr = target_addr >> 2;
-      ram_i.mem[word_addr] = value;
-    end
+    word_addr = target_addr >> 2;
+    ram_i.mem[word_addr] = value;
   endtask
 
   task automatic check_status_constants;
-    begin
-      if (HW_ACCEL_STATUS_OK !== 32'd1 ||
+    if (HW_ACCEL_STATUS_OK !== 32'd1 ||
           HW_ACCEL_STATUS_ERR_ZERO_LENGTH !== 32'd2 ||
           HW_ACCEL_STATUS_ERR_ZERO_DIMENSION !== 32'd3 ||
           HW_ACCEL_STATUS_ERR_SIZE_OVERFLOW !== 32'd4 ||
           HW_ACCEL_STATUS_ERR_ADDRESS_RANGE !== 32'd5 ||
           HW_ACCEL_STATUS_ERR_ALLOCATION !== 32'd6) begin
-        $error("[TB] Accelerator status constants do not match C contract.");
-      end else begin
-        $display("[TB PASS] Accelerator status constants match C contract.");
-      end
+      $error("[TB] Accelerator status constants do not match C contract.");
+    end else begin
+      $display("[TB PASS] Accelerator status constants match C contract.");
     end
   endtask
 
   task automatic check_gemm_region;
-    begin
-      check_word("GeMM C[0][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd0, 32'h00000000);
-      check_word("GeMM C[0][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd4, 32'h00000000);
-      check_word("GeMM C[1][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd8, 32'h00000000);
-      check_word("GeMM C[1][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd12, 32'h00000000);
-    end
+    check_word("GeMM C[0][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd0, 32'h00000000);
+    check_word("GeMM C[0][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd4, 32'h00000000);
+    check_word("GeMM C[1][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd8, 32'h00000000);
+    check_word("GeMM C[1][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd12, 32'h00000000);
   endtask
 
   task automatic check_reduction_region;
-    begin
-      check_word("Reduction output", HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR, 32'h00000000);
-    end
+    check_word("Reduction output", HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR, 32'h00000000);
   endtask
 
   task automatic check_sdpa_region;
-    begin
-      check_word("SDPA out[0][0]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd0, 32'h00000000);
-      check_word("SDPA out[0][1]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd4, 32'h00000000);
-      check_word("SDPA out[1][0]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd8, 32'h00000000);
-      check_word("SDPA out[1][1]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd12, 32'h00000000);
-    end
+    check_word("SDPA out[0][0]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd0, 32'h00000000);
+    check_word("SDPA out[0][1]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd4, 32'h00000000);
+    check_word("SDPA out[1][0]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd8, 32'h00000000);
+    check_word("SDPA out[1][1]", HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR + 32'd12, 32'h00000000);
   endtask
 
   task automatic run_placeholder_checks;
-    begin
-      $display("[TB] Checking preloaded output buffers before DUT writes.");
-      check_gemm_region();
-      check_reduction_region();
-      check_sdpa_region();
-    end
+    $display("[TB] Checking preloaded output buffers before DUT writes.");
+    check_gemm_region();
+    check_reduction_region();
+    check_sdpa_region();
   endtask
 
   task automatic trigger_dut;
-    begin
-      @(negedge clk);
-      start = 1'b1;
-      @(negedge clk);
-      start = 1'b0;
-      wait (done === 1'b1);
-    end
+    @(negedge clk);
+    start = 1'b1;
+    @(negedge clk);
+    start = 1'b0;
+    wait (done === 1'b1);
   endtask
 
   task automatic check_success_case;
-    begin
-      $display("[TB] Checking fake GeMM DUT success path.");
-      check_word("GeMM C[0][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd0, 32'h0000003A);
-      check_word("GeMM C[0][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd4, 32'h00000040);
-      check_word("GeMM C[1][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd8, 32'h0000008B);
-      check_word("GeMM C[1][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd12, 32'h0000009A);
-      if (status !== HW_ACCEL_STATUS_OK) begin
-        $error("[TB] Fake GeMM DUT status mismatch: got 0x%08h expected 0x%08h", status,
-               HW_ACCEL_STATUS_OK);
-      end else begin
-        $display("[TB PASS] Fake GeMM DUT status = 0x%08h", status);
-      end
+    $display("[TB] Checking fake GeMM DUT success path.");
+    check_word("GeMM C[0][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd0, 32'h0000003A);
+    check_word("GeMM C[0][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd4, 32'h00000040);
+    check_word("GeMM C[1][0]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd8, 32'h0000008B);
+    check_word("GeMM C[1][1]", HW_ACCEL_GEMM_DEMO_C_ADDR + 32'd12, 32'h0000009A);
+    if (status !== HW_ACCEL_STATUS_OK) begin
+      $error("[TB] Fake GeMM DUT status mismatch: got 0x%08h expected 0x%08h", status,
+             HW_ACCEL_STATUS_OK);
+    end else begin
+      $display("[TB PASS] Fake GeMM DUT status = 0x%08h", status);
     end
   endtask
 
   task automatic check_error_case(input string label, input logic [31:0] expected_status);
-    begin
-      if (status !== expected_status) begin
-        $error("[TB] %s status mismatch: got 0x%08h expected 0x%08h", label, status,
-               expected_status);
-      end else begin
-        $display("[TB PASS] %s status = 0x%08h", label, status);
-      end
-      check_gemm_region();
+    if (status !== expected_status) begin
+      $error("[TB] %s status mismatch: got 0x%08h expected 0x%08h", label, status, expected_status);
+    end else begin
+      $display("[TB PASS] %s status = 0x%08h", label, status);
     end
+    check_gemm_region();
   endtask
 
   task automatic run_post_dut_checks;
-    begin
-      $display("[TB] Reduction and SDPA checkpoints are still placeholders.");
-      check_reduction_region();
-      check_sdpa_region();
-    end
+    $display("[TB] Reduction and SDPA checkpoints are still placeholders.");
+    check_reduction_region();
+    check_sdpa_region();
   endtask
 
   initial begin
