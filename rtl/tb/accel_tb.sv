@@ -43,7 +43,7 @@ module accel_tb;
     logic [31:0] word_addr;
     begin
       word_addr = target_addr >> 2;
-      read_word = ram_i.mem[word_addr];
+      return ram_i.mem[word_addr];
     end
   endfunction
 
