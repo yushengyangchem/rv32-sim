@@ -10,3 +10,7 @@ default:
 # Update all flake inputs and refresh flake.lock.
 update:
     cd {{ repo_root }} && nix flake update
+
+# Generate a compile_commands.json database using Bear for IDE/LSP integration.
+bear:
+    cd {{ repo_root }} && bear -- make && make clean
