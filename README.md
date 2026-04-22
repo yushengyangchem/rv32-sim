@@ -219,7 +219,7 @@ Goal: understand operator math before touching RTL.
 Goal: make the software/RTL boundary explicit and stable.
 
 - keep all accelerator calls descriptor-driven
-- share address maps and descriptor fields across C, docs, and SystemVerilog
+- share one address map and one descriptor layout across C, docs, and SystemVerilog
 - validate memory movement separately from compute implementation
 
 ### Phase 4: RTL Co-Design

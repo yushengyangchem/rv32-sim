@@ -3,7 +3,8 @@
 module accel_tb;
   import accel_layout_pkg::*;
 
-  localparam int unsigned RAM_WORDS = 65536;
+  // Match the 1 MiB host memory space so the shared demo addresses fit in RTL.
+  localparam int unsigned RAM_WORDS = 262144;
 
   logic clk = 1'b0;
   logic rst_n = 1'b0;
@@ -161,7 +162,7 @@ module accel_tb;
     check_error_case("Zero-dimension descriptor", HW_ACCEL_STATUS_ERR_ZERO_DIMENSION);
 
     preload_demo_mem();
-    write_word(HW_ACCEL_GEMM_DEMO_DESC_ADDR + GEMM_DESC_OUTPUT_ADDR_OFFSET, 32'h0000_3330);
+    write_word(HW_ACCEL_GEMM_DEMO_DESC_ADDR + GEMM_DESC_OUTPUT_ADDR_OFFSET, 32'h0008_3330);
     run_placeholder_checks();
     trigger_dut();
     check_error_case("Address-range descriptor", HW_ACCEL_STATUS_ERR_ADDRESS_RANGE);

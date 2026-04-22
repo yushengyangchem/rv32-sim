@@ -11,20 +11,20 @@ package accel_layout_pkg;
   localparam logic [31:0] HW_ACCEL_STATUS_ERR_ADDRESS_RANGE = 32'd5;
   localparam logic [31:0] HW_ACCEL_STATUS_ERR_ALLOCATION = 32'd6;
 
-  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_A_ADDR = 32'h0000_1000;
-  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_B_ADDR = 32'h0000_2000;
-  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_C_ADDR = 32'h0000_3000;
-  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_DESC_ADDR = 32'h0000_3100;
+  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_A_ADDR = 32'h0008_0000;
+  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_B_ADDR = 32'h0008_1000;
+  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_C_ADDR = 32'h0008_2000;
+  localparam logic [31:0] HW_ACCEL_GEMM_DEMO_DESC_ADDR = 32'h0008_2100;
 
-  localparam logic [31:0] HW_ACCEL_REDUCTION_DEMO_INPUT_ADDR = 32'h0000_4000;
-  localparam logic [31:0] HW_ACCEL_REDUCTION_DEMO_DESC_ADDR = 32'h0000_4100;
-  localparam logic [31:0] HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR = 32'h0000_4200;
+  localparam logic [31:0] HW_ACCEL_REDUCTION_DEMO_INPUT_ADDR = 32'h0008_3000;
+  localparam logic [31:0] HW_ACCEL_REDUCTION_DEMO_DESC_ADDR = 32'h0008_3100;
+  localparam logic [31:0] HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR = 32'h0008_3200;
 
-  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_Q_ADDR = 32'h0000_5000;
-  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_DESC_ADDR = 32'h0000_5100;
-  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_K_ADDR = 32'h0000_5200;
-  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_V_ADDR = 32'h0000_5300;
-  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR = 32'h0000_5400;
+  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_Q_ADDR = 32'h0008_4000;
+  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_DESC_ADDR = 32'h0008_4100;
+  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_K_ADDR = 32'h0008_4200;
+  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_V_ADDR = 32'h0008_4300;
+  localparam logic [31:0] HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR = 32'h0008_4400;
 
   localparam int unsigned GEMM_DESC_B_ADDR_OFFSET = 0;
   localparam int unsigned GEMM_DESC_OUTPUT_ADDR_OFFSET = 4;

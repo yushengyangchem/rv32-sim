@@ -35,18 +35,18 @@ so RTL and testbench code can check the same contract.
 
 ## Demo Memory Map
 
-- `0x00001000`: GeMM matrix A
-- `0x00002000`: GeMM matrix B
-- `0x00003000`: GeMM result C
-- `0x00003100`: GeMM descriptor
-- `0x00004000`: Reduction input vector
-- `0x00004100`: Reduction descriptor
-- `0x00004200`: Reduction output scalar
-- `0x00005000`: SDPA Q
-- `0x00005100`: SDPA descriptor
-- `0x00005200`: SDPA K
-- `0x00005300`: SDPA V
-- `0x00005400`: SDPA output
+- `0x00080000`: GeMM matrix A
+- `0x00081000`: GeMM matrix B
+- `0x00082000`: GeMM result C
+- `0x00082100`: GeMM descriptor
+- `0x00083000`: Reduction input vector
+- `0x00083100`: Reduction descriptor
+- `0x00083200`: Reduction output scalar
+- `0x00084000`: SDPA Q
+- `0x00084100`: SDPA descriptor
+- `0x00084200`: SDPA K
+- `0x00084300`: SDPA V
+- `0x00084400`: SDPA output
 
 These constants live in [accel_layout.h](../include/accel_layout.h).
 The matching SystemVerilog package lives in [accel_layout_pkg.sv](../rtl/include/accel_layout_pkg.sv).
@@ -123,7 +123,7 @@ Field meanings:
 
 ## Current Demo Shapes
 
-- GeMM: `2 x 2 x 2`
+- GeMM: `2 x 2 x 3`
 - Reduction length: `6`
 - SDPA: `seq_len=2`, `depth=2`, `value_dim=2`
 
@@ -133,7 +133,7 @@ dimensions.
 
 ## Why This Split Helps RTL
 
-- C model, target program, and future RTL can share one source of truth for addresses
+- C model, target program, and future RTL now share one source of truth for addresses
 - Descriptor structs make the accelerator boundary explicit
 - Testbench memory initialization can mirror the same layout without guessing
 
