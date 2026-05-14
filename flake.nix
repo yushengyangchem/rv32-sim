@@ -29,8 +29,6 @@
           devShells.default = pkgs.mkShell {
             inputsFrom = [ config.pre-commit.devShell ];
             packages = with pkgs; [
-              gcc
-              gnumake
               just
               clang-tools
               iverilog
