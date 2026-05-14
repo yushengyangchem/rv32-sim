@@ -1,6 +1,5 @@
 .direnv
 .codex
-.pre-commit-config.yaml
 .cache
 
 rv32-sim

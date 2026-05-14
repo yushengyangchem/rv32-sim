@@ -94,7 +94,7 @@ be considered complete as "Project 1":
 This project uses Nix to provide a reproducible toolchain.
 
 ```bash
-nix develop
+nix shell
 # or use direnv
 ```
 
@@ -159,7 +159,7 @@ The matching interface notes are documented in [accel_interface.md](docs/accel_i
 For RTL and testbench work, the SystemVerilog mirror is [accel_layout_pkg.sv](rtl/include/accel_layout_pkg.sv).
 For memory preload in simulation, use [demo_mem_init.memh](rtl/tb/demo_mem_init.memh) or regenerate it with `make gen-tb-init`.
 A minimal testbench skeleton is available in [accel_tb.sv](rtl/tb/accel_tb.sv) with RAM in [simple_ram.sv](rtl/tb/simple_ram.sv).
-There is also a runnable fake DUT example in [fake_gemm_dut.sv](rtl/examples/fake_gemm_dut.sv); after `nix develop`, run `make sim-tb`.
+There is also a runnable fake DUT example in [fake_gemm_dut.sv](rtl/examples/fake_gemm_dut.sv); after `nix shell`, run `make sim-tb`.
 
 ## Project Shape
 
