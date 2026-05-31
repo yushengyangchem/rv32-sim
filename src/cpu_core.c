@@ -24,12 +24,6 @@ int cpu_step(CPU_State *cpu) {
     cpu->halted = true;
     return -1;
   }
-  if (inst == 0) {
-    printf("[CPU] Execution halted (fetched 0x00000000).\n");
-    cpu->halted = true;
-    return 0;
-  }
-
   // 2. DECODE
   uint32_t opcode = inst & 0x7F;
   uint32_t rd = (inst >> 7) & 0x1F;
