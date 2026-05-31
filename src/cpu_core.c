@@ -32,8 +32,6 @@ int cpu_step(CPU_State *cpu) {
   uint32_t rs2 = (inst >> 20) & 0x1F;
   uint32_t funct7 = (inst >> 25) & 0x7F;
 
-  cpu->regs[0] = 0; // RISC-V spec dictates x0 is always 0
-
   // Default next instruction address is PC + 4
   uint32_t next_pc = cpu->pc + 4;
 
