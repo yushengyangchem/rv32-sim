@@ -31,7 +31,7 @@ int cpu_step(CPU_State *cpu) {
   uint32_t next_pc = cpu->pc + 4;
 
   switch (opcode) {
-  case 0x03: {
+  case 0x03: { // LOAD: LW, LH, LHU, LB, LBU (I-type)
     uint32_t imm12 = (inst >> 20) & 0xFFF;
     int32_t offset = (imm12 & 0x800) ? (imm12 | 0xFFFFF000) : imm12;
 
@@ -56,7 +56,7 @@ int cpu_step(CPU_State *cpu) {
     break;
   }
 
-  case 0x13: {
+  case 0x13: { // OP-IMM: ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI (I-type)
     uint32_t imm12 = (inst >> 20) & 0xFFF;
     int32_t imm = (imm12 & 0x800) ? (imm12 | 0xFFFFF000) : imm12;
 
@@ -70,7 +70,7 @@ int cpu_step(CPU_State *cpu) {
     break;
   }
 
-  case 0x23: {
+  case 0x23: { // STORE: SW, SH, SB (S-type)
     uint32_t imm11_5 = (inst >> 25) & 0x7F;
     uint32_t imm4_0 = (inst >> 7) & 0x1F;
     uint32_t imm_s = (imm11_5 << 5) | imm4_0;
@@ -94,7 +94,7 @@ int cpu_step(CPU_State *cpu) {
     break;
   }
 
-  case 0x37: {
+  case 0x37: { // LUI: Load Upper Immediate (U-type)
     uint32_t u_imm = inst & 0xFFFFF000;
     if (rd != 0)
       cpu->regs[rd] = u_imm;
@@ -102,7 +102,7 @@ int cpu_step(CPU_State *cpu) {
     break;
   }
 
-  case 0x67: {
+  case 0x67: { // JALR: Jump and Link Register (I-type)
     uint32_t imm12 = (inst >> 20) & 0xFFF;
     int32_t imm = (imm12 & 0x800) ? (imm12 | 0xFFFFF000) : imm12;
 
@@ -114,7 +114,7 @@ int cpu_step(CPU_State *cpu) {
     break;
   }
 
-  case 0x6F: {
+  case 0x6F: { // JAL: Jump and Link (J-type)
     uint32_t imm20 = (inst >> 31) & 0x1;
     uint32_t imm10_1 = (inst >> 21) & 0x3FF;
     uint32_t imm11 = (inst >> 20) & 0x1;
