@@ -56,7 +56,8 @@ int cpu_step(CPU_State *cpu) {
     break;
   }
 
-  case 0x13: { // OP-IMM: ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI (I-type)
+  case 0x13: { // OP-IMM: ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI
+               // (I-type)
     uint32_t imm12 = (inst >> 20) & 0xFFF;
     int32_t imm = (imm12 & 0x800) ? (imm12 | 0xFFFFF000) : imm12;
 
