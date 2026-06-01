@@ -15,7 +15,6 @@ int main(int argc, char **argv) {
 
   const char *bin_file = argv[1];
 
-  // We assume the binary is linked to start at memory address 0
   uint32_t entry_point = 0x00000000;
 
   if (!mem_load_bin(bin_file, entry_point)) {

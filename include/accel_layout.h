@@ -3,9 +3,13 @@
 
 #include <stdint.h>
 
-#define HW_ACCEL_CUSTOM_FUNCT3_GEMM 0u
-#define HW_ACCEL_CUSTOM_FUNCT3_REDUCTION 1u
-#define HW_ACCEL_CUSTOM_FUNCT3_SDPA 2u
+#define HW_ACCEL_OP_GEMM 0u
+#define HW_ACCEL_OP_REDUCTION 1u
+#define HW_ACCEL_OP_SDPA 2u
+
+#define HW_ACCEL_MMIO_BASE 0x00090000u
+#define HW_ACCEL_MMIO_DOORBELL (HW_ACCEL_MMIO_BASE + 0x00u)
+#define HW_ACCEL_MMIO_STATUS (HW_ACCEL_MMIO_BASE + 0x04u)
 
 #define HW_ACCEL_GEMM_DEMO_A_ADDR 0x00080000u
 #define HW_ACCEL_GEMM_DEMO_B_ADDR 0x00081000u
@@ -23,6 +27,7 @@
 #define HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR 0x00084400u
 
 typedef struct {
+  uint32_t a_addr;
   uint32_t b_addr;
   uint32_t output_addr;
   uint32_t rows;
@@ -31,11 +36,13 @@ typedef struct {
 } GemmDescriptor;
 
 typedef struct {
+  uint32_t input_addr;
   uint32_t len;
   uint32_t output_addr;
 } ReductionDescriptor;
 
 typedef struct {
+  uint32_t q_addr;
   uint32_t k_addr;
   uint32_t v_addr;
   uint32_t output_addr;

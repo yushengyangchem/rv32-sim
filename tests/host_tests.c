@@ -12,6 +12,10 @@ static bool nearly_equal(float actual, float expected, float tolerance) {
   return diff <= tolerance;
 }
 
+static uint32_t make_doorbell_val(uint32_t op, uint32_t desc_addr) {
+  return (op << 24u) | (desc_addr & 0x00FFFFFFu);
+}
+
 static bool test_hw_accel_gemm(void) {
   const int32_t expected[4] = {
       58,
@@ -26,7 +30,7 @@ static bool test_hw_accel_gemm(void) {
     return false;
   }
 
-  if (hw_accel_gemm(HW_ACCEL_GEMM_DEMO_A_ADDR, HW_ACCEL_GEMM_DEMO_DESC_ADDR) !=
+  if (hw_accel_dispatch(HW_ACCEL_OP_GEMM, HW_ACCEL_GEMM_DEMO_DESC_ADDR) !=
       HW_ACCEL_STATUS_OK) {
     printf("[FAIL] HW accelerator returned non-success status\n");
     return false;
@@ -86,15 +90,15 @@ static bool test_hw_accel_gemm_variable_shape(void) {
     }
   }
 
-  if (mem_write_32(desc_addr, matrix_b_addr) != 0) {
+  if (mem_write_32(desc_addr, matrix_a_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr);
     return false;
   }
-  if (mem_write_32(desc_addr + 4u, matrix_c_addr) != 0) {
+  if (mem_write_32(desc_addr + 4u, matrix_b_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 4u);
     return false;
   }
-  if (mem_write_32(desc_addr + 8u, 2u) != 0) {
+  if (mem_write_32(desc_addr + 8u, matrix_c_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 8u);
     return false;
   }
@@ -102,12 +106,16 @@ static bool test_hw_accel_gemm_variable_shape(void) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 12u);
     return false;
   }
-  if (mem_write_32(desc_addr + 16u, 3u) != 0) {
+  if (mem_write_32(desc_addr + 16u, 2u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 16u);
     return false;
   }
+  if (mem_write_32(desc_addr + 20u, 3u) != 0) {
+    printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 20u);
+    return false;
+  }
 
-  if (hw_accel_gemm(matrix_a_addr, desc_addr) != HW_ACCEL_STATUS_OK) {
+  if (hw_accel_dispatch(HW_ACCEL_OP_GEMM, desc_addr) != HW_ACCEL_STATUS_OK) {
     printf(
         "[FAIL] Variable-shape GeMM accelerator returned non-success status\n");
     return false;
@@ -143,8 +151,8 @@ static bool test_hw_accel_reduction(void) {
     return false;
   }
 
-  if (hw_accel_reduction(HW_ACCEL_REDUCTION_DEMO_INPUT_ADDR,
-                         HW_ACCEL_REDUCTION_DEMO_DESC_ADDR) !=
+  if (hw_accel_dispatch(HW_ACCEL_OP_REDUCTION,
+                        HW_ACCEL_REDUCTION_DEMO_DESC_ADDR) !=
       HW_ACCEL_STATUS_OK) {
     printf("[FAIL] Reduction accelerator returned non-success status\n");
     return false;
@@ -176,12 +184,16 @@ static bool test_hw_accel_reduction_zero_length_rejected(void) {
   const uint32_t output_addr = 0x00007200u;
 
   mem_reset();
-  if (mem_write_32(desc_addr, 0u) != 0) {
+  if (mem_write_32(desc_addr, input_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr);
     return false;
   }
-  if (mem_write_32(desc_addr + 4u, output_addr) != 0) {
+  if (mem_write_32(desc_addr + 4u, 0u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 4u);
+    return false;
+  }
+  if (mem_write_32(desc_addr + 8u, output_addr) != 0) {
+    printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 8u);
     return false;
   }
   if (mem_write_32(output_addr, 0xDEADBEEFu) != 0) {
@@ -189,7 +201,7 @@ static bool test_hw_accel_reduction_zero_length_rejected(void) {
     return false;
   }
 
-  if (hw_accel_reduction(input_addr, desc_addr) !=
+  if (hw_accel_dispatch(HW_ACCEL_OP_REDUCTION, desc_addr) !=
       HW_ACCEL_STATUS_ERR_ZERO_LENGTH) {
     printf("[FAIL] Reduction zero-length descriptor should be rejected\n");
     return false;
@@ -221,16 +233,20 @@ static bool test_hw_accel_reduction_invalid_output_rejected(void) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", input_addr);
     return false;
   }
-  if (mem_write_32(desc_addr, 1u) != 0) {
+  if (mem_write_32(desc_addr, input_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr);
     return false;
   }
-  if (mem_write_32(desc_addr + 4u, MEMORY_SIZE) != 0) {
+  if (mem_write_32(desc_addr + 4u, 1u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 4u);
     return false;
   }
+  if (mem_write_32(desc_addr + 8u, MEMORY_SIZE) != 0) {
+    printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 8u);
+    return false;
+  }
 
-  if (hw_accel_reduction(input_addr, desc_addr) !=
+  if (hw_accel_dispatch(HW_ACCEL_OP_REDUCTION, desc_addr) !=
       HW_ACCEL_STATUS_ERR_ADDRESS_RANGE) {
     printf("[FAIL] Reduction invalid output address should be rejected\n");
     return false;
@@ -254,7 +270,7 @@ static bool test_hw_accel_sdpa(void) {
     return false;
   }
 
-  if (hw_accel_sdpa(HW_ACCEL_SDPA_DEMO_Q_ADDR, HW_ACCEL_SDPA_DEMO_DESC_ADDR) !=
+  if (hw_accel_dispatch(HW_ACCEL_OP_SDPA, HW_ACCEL_SDPA_DEMO_DESC_ADDR) !=
       HW_ACCEL_STATUS_OK) {
     printf("[FAIL] SDPA accelerator returned non-success status\n");
     return false;
@@ -283,27 +299,26 @@ static bool test_hw_accel_sdpa(void) {
 }
 
 static bool test_hw_accel_sdpa_zero_dimension_rejected(void) {
-  const uint32_t q_addr = 0x00008000u;
   const uint32_t desc_addr = 0x00008100u;
 
   mem_reset();
-  if (mem_write_32(desc_addr, 0x00008200u) != 0) {
+  if (mem_write_32(desc_addr, 0x00008000u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr);
     return false;
   }
-  if (mem_write_32(desc_addr + 4u, 0x00008300u) != 0) {
+  if (mem_write_32(desc_addr + 4u, 0x00008200u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 4u);
     return false;
   }
-  if (mem_write_32(desc_addr + 8u, 0x00008400u) != 0) {
+  if (mem_write_32(desc_addr + 8u, 0x00008300u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 8u);
     return false;
   }
-  if (mem_write_32(desc_addr + 12u, 0u) != 0) {
+  if (mem_write_32(desc_addr + 12u, 0x00008400u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 12u);
     return false;
   }
-  if (mem_write_32(desc_addr + 16u, 2u) != 0) {
+  if (mem_write_32(desc_addr + 16u, 0u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 16u);
     return false;
   }
@@ -311,8 +326,13 @@ static bool test_hw_accel_sdpa_zero_dimension_rejected(void) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 20u);
     return false;
   }
+  if (mem_write_32(desc_addr + 24u, 2u) != 0) {
+    printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 24u);
+    return false;
+  }
 
-  if (hw_accel_sdpa(q_addr, desc_addr) != HW_ACCEL_STATUS_ERR_ZERO_DIMENSION) {
+  if (hw_accel_dispatch(HW_ACCEL_OP_SDPA, desc_addr) !=
+      HW_ACCEL_STATUS_ERR_ZERO_DIMENSION) {
     printf("[FAIL] SDPA zero-dimension descriptor should be rejected\n");
     return false;
   }
@@ -347,19 +367,19 @@ static bool test_hw_accel_sdpa_invalid_output_rejected(void) {
     }
   }
 
-  if (mem_write_32(desc_addr, k_addr) != 0) {
+  if (mem_write_32(desc_addr, q_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr);
     return false;
   }
-  if (mem_write_32(desc_addr + 4u, v_addr) != 0) {
+  if (mem_write_32(desc_addr + 4u, k_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 4u);
     return false;
   }
-  if (mem_write_32(desc_addr + 8u, MEMORY_SIZE) != 0) {
+  if (mem_write_32(desc_addr + 8u, v_addr) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 8u);
     return false;
   }
-  if (mem_write_32(desc_addr + 12u, 2u) != 0) {
+  if (mem_write_32(desc_addr + 12u, MEMORY_SIZE) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 12u);
     return false;
   }
@@ -371,8 +391,13 @@ static bool test_hw_accel_sdpa_invalid_output_rejected(void) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 20u);
     return false;
   }
+  if (mem_write_32(desc_addr + 24u, 2u) != 0) {
+    printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 24u);
+    return false;
+  }
 
-  if (hw_accel_sdpa(q_addr, desc_addr) != HW_ACCEL_STATUS_ERR_ADDRESS_RANGE) {
+  if (hw_accel_dispatch(HW_ACCEL_OP_SDPA, desc_addr) !=
+      HW_ACCEL_STATUS_ERR_ADDRESS_RANGE) {
     printf("[FAIL] SDPA invalid output address should be rejected\n");
     return false;
   }
@@ -382,23 +407,22 @@ static bool test_hw_accel_sdpa_invalid_output_rejected(void) {
 }
 
 static bool test_hw_accel_sdpa_dimension_overflow_rejected(void) {
-  const uint32_t q_addr = 0x00008900u;
   const uint32_t desc_addr = 0x00008A00u;
 
   mem_reset();
-  if (mem_write_32(desc_addr, 0x00008B00u) != 0) {
+  if (mem_write_32(desc_addr, 0x00008900u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr);
     return false;
   }
-  if (mem_write_32(desc_addr + 4u, 0x00008C00u) != 0) {
+  if (mem_write_32(desc_addr + 4u, 0x00008B00u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 4u);
     return false;
   }
-  if (mem_write_32(desc_addr + 8u, 0x00008D00u) != 0) {
+  if (mem_write_32(desc_addr + 8u, 0x00008C00u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 8u);
     return false;
   }
-  if (mem_write_32(desc_addr + 12u, 0xFFFFFFFFu) != 0) {
+  if (mem_write_32(desc_addr + 12u, 0x00008D00u) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 12u);
     return false;
   }
@@ -406,17 +430,71 @@ static bool test_hw_accel_sdpa_dimension_overflow_rejected(void) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 16u);
     return false;
   }
-  if (mem_write_32(desc_addr + 20u, 2u) != 0) {
+  if (mem_write_32(desc_addr + 20u, 0xFFFFFFFFu) != 0) {
     printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 20u);
     return false;
   }
+  if (mem_write_32(desc_addr + 24u, 2u) != 0) {
+    printf("[FAIL] mem_write_32 error at 0x%08X\n", desc_addr + 24u);
+    return false;
+  }
 
-  if (hw_accel_sdpa(q_addr, desc_addr) != HW_ACCEL_STATUS_ERR_ADDRESS_RANGE) {
+  if (hw_accel_dispatch(HW_ACCEL_OP_SDPA, desc_addr) !=
+      HW_ACCEL_STATUS_ERR_ADDRESS_RANGE) {
     printf("[FAIL] SDPA overflowing dimensions should be rejected\n");
     return false;
   }
 
   printf("[PASS] SDPA overflowing dimensions rejected\n");
+  return true;
+}
+
+static bool test_doorbell_gemm(void) {
+  const int32_t expected[4] = {
+      58,
+      64,
+      139,
+      154,
+  };
+
+  mem_reset();
+  if (hw_accel_init_demo_data() != 0) {
+    printf("[FAIL] hw_accel_init_demo_data failed\n");
+    return false;
+  }
+
+  uint32_t doorbell_val =
+      make_doorbell_val(HW_ACCEL_OP_GEMM, HW_ACCEL_GEMM_DEMO_DESC_ADDR);
+  if (mem_write_32(HW_ACCEL_MMIO_DOORBELL, doorbell_val) != 0) {
+    printf("[FAIL] Doorbell write failed\n");
+    return false;
+  }
+
+  uint32_t status = mem_get_accel_status();
+  if (status != HW_ACCEL_STATUS_OK) {
+    printf("[FAIL] Doorbell GeMM status = %u (%s)\n", status,
+           hw_accel_status_name(status));
+    return false;
+  }
+
+  for (size_t i = 0; i < 4; i++) {
+    uint32_t addr =
+        HW_ACCEL_GEMM_DEMO_C_ADDR + (uint32_t)(i * sizeof(uint32_t));
+    uint32_t val = 0;
+    if (mem_read_32(addr, &val) != 0) {
+      printf("[FAIL] mem_read_32 error at 0x%08X\n", addr);
+      return false;
+    }
+    int32_t actual = (int32_t)val;
+    if (actual != expected[i]) {
+      printf("[FAIL] Doorbell GeMM mismatch at index %zu: got %d, "
+             "expected %d\n",
+             i, actual, expected[i]);
+      return false;
+    }
+  }
+
+  printf("[PASS] Doorbell GeMM via MMIO\n");
   return true;
 }
 
@@ -432,6 +510,7 @@ int main(void) {
   ok = test_hw_accel_sdpa_zero_dimension_rejected() && ok;
   ok = test_hw_accel_sdpa_invalid_output_rejected() && ok;
   ok = test_hw_accel_sdpa_dimension_overflow_rejected() && ok;
+  ok = test_doorbell_gemm() && ok;
 
   if (!ok) {
     printf("[TEST] host accelerator tests failed\n");

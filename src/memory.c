@@ -1,12 +1,18 @@
 #include "memory.h"
+#include "accel_layout.h"
+#include "hw_accel.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// The actual physical memory array for our simulator
 static uint8_t ram[MEMORY_SIZE];
 
-void mem_reset(void) { memset(ram, 0, sizeof(ram)); }
+static uint32_t accel_status_reg = 0;
+
+void mem_reset(void) {
+  memset(ram, 0, sizeof(ram));
+  accel_status_reg = 0;
+}
 
 bool mem_load_bin(const char *filename, uint32_t base_addr) {
   FILE *file = fopen(filename, "rb");
@@ -52,6 +58,12 @@ int mem_read_32(uint32_t addr, uint32_t *out) {
   if (out == NULL) {
     return -1;
   }
+  if (addr == HW_ACCEL_MMIO_STATUS) {
+    *out = accel_status_reg;
+    printf("[MEM] MMIO read STATUS => %u (%s)\n", accel_status_reg,
+           hw_accel_status_name(accel_status_reg));
+    return 0;
+  }
   if (addr + 3 >= MEMORY_SIZE) {
     printf("[MEM] Warning: Out of bounds read at 0x%08X\n", addr);
     return -2;
@@ -62,6 +74,18 @@ int mem_read_32(uint32_t addr, uint32_t *out) {
 }
 
 int mem_write_32(uint32_t addr, uint32_t value) {
+  if (addr == HW_ACCEL_MMIO_DOORBELL) {
+    uint32_t op = (value >> 24) & 0xFFu;
+    uint32_t desc_addr = value & 0x00FFFFFFu;
+    printf("[MEM] MMIO DOORBELL write: op=%u desc_addr=0x%08X\n", op,
+           desc_addr);
+    accel_status_reg = hw_accel_dispatch(op, desc_addr);
+    return 0;
+  }
+  if (addr == HW_ACCEL_MMIO_STATUS) {
+    accel_status_reg = value;
+    return 0;
+  }
   if (addr + 3 >= MEMORY_SIZE) {
     printf("[MEM] Warning: Out of bounds write at 0x%08X\n", addr);
     return -1;
@@ -72,3 +96,5 @@ int mem_write_32(uint32_t addr, uint32_t value) {
   ram[addr + 3] = (value >> 24) & 0xFF;
   return 0;
 }
+
+uint32_t mem_get_accel_status(void) { return accel_status_reg; }

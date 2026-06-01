@@ -13,9 +13,7 @@ typedef enum {
 } HwAccelStatus;
 
 int hw_accel_init_demo_data(void);
-uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr);
-uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr);
-uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr);
+uint32_t hw_accel_dispatch(uint32_t op, uint32_t desc_addr);
 const char *hw_accel_status_name(uint32_t status);
 
 #endif // HW_ACCEL_H

@@ -188,24 +188,29 @@ int hw_accel_init_demo_data(void) {
       return rc;
     }
   }
-  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR, HW_ACCEL_GEMM_DEMO_B_ADDR);
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR, HW_ACCEL_GEMM_DEMO_A_ADDR);
   if (rc != 0) {
     return rc;
   }
   rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 4u,
+                    HW_ACCEL_GEMM_DEMO_B_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 8u,
                     HW_ACCEL_GEMM_DEMO_C_ADDR);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 8u, gemm_rows);
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 12u, gemm_rows);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 12u, gemm_cols);
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 16u, gemm_cols);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 16u, gemm_depth);
+  rc = mem_write_32(HW_ACCEL_GEMM_DEMO_DESC_ADDR + 20u, gemm_depth);
   if (rc != 0) {
     return rc;
   }
@@ -218,11 +223,16 @@ int hw_accel_init_demo_data(void) {
       return rc;
     }
   }
-  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR, REDUCTION_DEMO_LEN);
+  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR,
+                    HW_ACCEL_REDUCTION_DEMO_INPUT_ADDR);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR + 4u,
+  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR + 4u, REDUCTION_DEMO_LEN);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_REDUCTION_DEMO_DESC_ADDR + 8u,
                     HW_ACCEL_REDUCTION_DEMO_OUTPUT_ADDR);
   if (rc != 0) {
     return rc;
@@ -257,29 +267,34 @@ int hw_accel_init_demo_data(void) {
     }
   }
 
-  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR, HW_ACCEL_SDPA_DEMO_K_ADDR);
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR, HW_ACCEL_SDPA_DEMO_Q_ADDR);
   if (rc != 0) {
     return rc;
   }
   rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 4u,
-                    HW_ACCEL_SDPA_DEMO_V_ADDR);
+                    HW_ACCEL_SDPA_DEMO_K_ADDR);
   if (rc != 0) {
     return rc;
   }
   rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 8u,
+                    HW_ACCEL_SDPA_DEMO_V_ADDR);
+  if (rc != 0) {
+    return rc;
+  }
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 12u,
                     HW_ACCEL_SDPA_DEMO_OUTPUT_ADDR);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 12u, SDPA_DEMO_SEQ_LEN);
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 16u, SDPA_DEMO_SEQ_LEN);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 16u, SDPA_DEMO_DEPTH);
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 20u, SDPA_DEMO_DEPTH);
   if (rc != 0) {
     return rc;
   }
-  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 20u, SDPA_DEMO_VALUE_DIM);
+  rc = mem_write_32(HW_ACCEL_SDPA_DEMO_DESC_ADDR + 24u, SDPA_DEMO_VALUE_DIM);
   if (rc != 0) {
     return rc;
   }
@@ -287,7 +302,7 @@ int hw_accel_init_demo_data(void) {
   return 0;
 }
 
-uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
+static uint32_t do_gemm(uint32_t desc_addr) {
   GemmDescriptor desc;
   int32_t *matrix_a = NULL;
   int32_t *matrix_b = NULL;
@@ -297,26 +312,23 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
   size_t c_count = 0;
   int rc;
 
+  desc.a_addr = 0;
   desc.b_addr = 0;
   desc.output_addr = 0;
   desc.rows = 0;
   desc.cols = 0;
   desc.depth = 0;
-  rc = mem_read_32(desc_addr, &desc.b_addr);
+  rc = mem_read_32(desc_addr, &desc.a_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
-  rc = mem_read_32(desc_addr + 4u, &desc.output_addr);
+  rc = mem_read_32(desc_addr + 4u, &desc.b_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
-  {
-    uint32_t val = 0;
-    rc = mem_read_32(desc_addr + 8u, &val);
-    if (rc != 0) {
-      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
-    }
-    desc.rows = val;
+  rc = mem_read_32(desc_addr + 8u, &desc.output_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
   {
     uint32_t val = 0;
@@ -324,11 +336,19 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
     if (rc != 0) {
       return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
     }
-    desc.cols = val;
+    desc.rows = val;
   }
   {
     uint32_t val = 0;
     rc = mem_read_32(desc_addr + 16u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.cols = val;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 20u, &val);
     if (rc != 0) {
       return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
     }
@@ -351,7 +371,7 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
   b_count = (size_t)desc.depth * desc.cols;
   c_count = (size_t)desc.rows * desc.cols;
 
-  if (!address_range_valid(matrix_a_addr, a_count, sizeof(int32_t)) ||
+  if (!address_range_valid(desc.a_addr, a_count, sizeof(int32_t)) ||
       !address_range_valid(desc.b_addr, b_count, sizeof(int32_t)) ||
       !address_range_valid(desc.output_addr, c_count, sizeof(int32_t))) {
     printf("[HW ACCEL] GeMM descriptor points outside simulated memory.\n");
@@ -369,7 +389,7 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
     return HW_ACCEL_STATUS_ERR_ALLOCATION;
   }
 
-  rc = load_matrix_from_mem(matrix_a_addr, matrix_a, a_count);
+  rc = load_matrix_from_mem(desc.a_addr, matrix_a, a_count);
   if (rc != 0) {
     free(matrix_a);
     free(matrix_b);
@@ -393,9 +413,9 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
   }
 
   printf("\n==================================================\n");
-  printf("[HW ACCEL] Custom GeMM Instruction Triggered!\n");
-  printf("[HW ACCEL] Matrix A Base Address: 0x%08X\n", matrix_a_addr);
+  printf("[HW ACCEL] GeMM Triggered via Doorbell!\n");
   printf("[HW ACCEL] Descriptor Address: 0x%08X\n", desc_addr);
+  printf("[HW ACCEL] Matrix A Base Address: 0x%08X\n", desc.a_addr);
   printf("[HW ACCEL] Matrix B Base Address: 0x%08X\n", desc.b_addr);
   printf("[HW ACCEL] Output Base Address: 0x%08X\n", desc.output_addr);
   printf("[HW ACCEL] Shape: rows=%u cols=%u depth=%u\n", desc.rows, desc.cols,
@@ -413,19 +433,24 @@ uint32_t hw_accel_gemm(uint32_t matrix_a_addr, uint32_t desc_addr) {
   return HW_ACCEL_STATUS_OK;
 }
 
-uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
+static uint32_t do_reduction(uint32_t desc_addr) {
   ReductionDescriptor desc;
   float *input = NULL;
   float result = 0.0f;
   int rc;
 
+  desc.input_addr = 0;
   desc.len = 0;
   desc.output_addr = 0;
-  rc = mem_read_32(desc_addr, &desc.len);
+  rc = mem_read_32(desc_addr, &desc.input_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
-  rc = mem_read_32(desc_addr + 4u, &desc.output_addr);
+  rc = mem_read_32(desc_addr + 4u, &desc.len);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
+  rc = mem_read_32(desc_addr + 8u, &desc.output_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
@@ -435,7 +460,7 @@ uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
     return HW_ACCEL_STATUS_ERR_ZERO_LENGTH;
   }
 
-  if (!address_range_valid(input_addr, desc.len, sizeof(float)) ||
+  if (!address_range_valid(desc.input_addr, desc.len, sizeof(float)) ||
       !address_range_valid(desc.output_addr, 1u, sizeof(float))) {
     printf(
         "[HW ACCEL] Reduction descriptor points outside simulated memory.\n");
@@ -449,7 +474,7 @@ uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
   }
 
   for (size_t i = 0; i < desc.len; i++) {
-    rc = read_f32(input_addr + (uint32_t)(i * sizeof(float)), &input[i]);
+    rc = read_f32(desc.input_addr + (uint32_t)(i * sizeof(float)), &input[i]);
     if (rc != 0) {
       free(input);
       return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
@@ -464,9 +489,9 @@ uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
   }
 
   printf("\n==================================================\n");
-  printf("[HW ACCEL] Custom Reduction Instruction Triggered!\n");
-  printf("[HW ACCEL] Input Base Address: 0x%08X\n", input_addr);
+  printf("[HW ACCEL] Reduction Triggered via Doorbell!\n");
   printf("[HW ACCEL] Descriptor Address: 0x%08X\n", desc_addr);
+  printf("[HW ACCEL] Input Base Address: 0x%08X\n", desc.input_addr);
   print_vector_f32("Reduction Input", input, desc.len);
   printf("[HW ACCEL] Reduction Result = %.4f\n", result);
   printf("[HW ACCEL] Result written back to: 0x%08X\n", desc.output_addr);
@@ -477,7 +502,7 @@ uint32_t hw_accel_reduction(uint32_t input_addr, uint32_t desc_addr) {
   return HW_ACCEL_STATUS_OK;
 }
 
-uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
+static uint32_t do_sdpa(uint32_t desc_addr) {
   SdpaDescriptor desc;
   float *q = NULL;
   float *k = NULL;
@@ -489,31 +514,28 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   size_t v_count = 0;
   int rc;
 
+  desc.q_addr = 0;
   desc.k_addr = 0;
   desc.v_addr = 0;
   desc.output_addr = 0;
   desc.seq_len = 0;
   desc.depth = 0;
   desc.value_dim = 0;
-  rc = mem_read_32(desc_addr, &desc.k_addr);
+  rc = mem_read_32(desc_addr, &desc.q_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
-  rc = mem_read_32(desc_addr + 4u, &desc.v_addr);
+  rc = mem_read_32(desc_addr + 4u, &desc.k_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
-  rc = mem_read_32(desc_addr + 8u, &desc.output_addr);
+  rc = mem_read_32(desc_addr + 8u, &desc.v_addr);
   if (rc != 0) {
     return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
-  {
-    uint32_t val = 0;
-    rc = mem_read_32(desc_addr + 12u, &val);
-    if (rc != 0) {
-      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
-    }
-    desc.seq_len = val;
+  rc = mem_read_32(desc_addr + 12u, &desc.output_addr);
+  if (rc != 0) {
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
   }
   {
     uint32_t val = 0;
@@ -521,11 +543,19 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
     if (rc != 0) {
       return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
     }
-    desc.depth = val;
+    desc.seq_len = val;
   }
   {
     uint32_t val = 0;
     rc = mem_read_32(desc_addr + 20u, &val);
+    if (rc != 0) {
+      return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+    }
+    desc.depth = val;
+  }
+  {
+    uint32_t val = 0;
+    rc = mem_read_32(desc_addr + 24u, &val);
     if (rc != 0) {
       return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
     }
@@ -546,7 +576,7 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   qk_count = (size_t)desc.seq_len * desc.depth;
   v_count = (size_t)desc.seq_len * desc.value_dim;
 
-  if (!address_range_valid(q_addr, qk_count, sizeof(float)) ||
+  if (!address_range_valid(desc.q_addr, qk_count, sizeof(float)) ||
       !address_range_valid(desc.k_addr, qk_count, sizeof(float)) ||
       !address_range_valid(desc.v_addr, v_count, sizeof(float)) ||
       !address_range_valid(desc.output_addr, v_count, sizeof(float))) {
@@ -572,7 +602,7 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   }
 
   for (size_t i = 0; i < qk_count; i++) {
-    rc = read_f32(q_addr + (uint32_t)(i * sizeof(float)), &q[i]);
+    rc = read_f32(desc.q_addr + (uint32_t)(i * sizeof(float)), &q[i]);
     if (rc != 0) {
       free(q);
       free(k);
@@ -623,9 +653,9 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   }
 
   printf("\n==================================================\n");
-  printf("[HW ACCEL] Custom SDPA Instruction Triggered!\n");
-  printf("[HW ACCEL] Q Base Address: 0x%08X\n", q_addr);
+  printf("[HW ACCEL] SDPA Triggered via Doorbell!\n");
   printf("[HW ACCEL] Descriptor Address: 0x%08X\n", desc_addr);
+  printf("[HW ACCEL] Q Base Address: 0x%08X\n", desc.q_addr);
   print_matrix_f32("Q", q, desc.seq_len, desc.depth);
   print_matrix_f32("K", k, desc.seq_len, desc.depth);
   print_matrix_f32("V", v, desc.seq_len, desc.value_dim);
@@ -641,4 +671,18 @@ uint32_t hw_accel_sdpa(uint32_t q_addr, uint32_t desc_addr) {
   free(score_scratch);
   free(weight_scratch);
   return HW_ACCEL_STATUS_OK;
+}
+
+uint32_t hw_accel_dispatch(uint32_t op, uint32_t desc_addr) {
+  switch (op) {
+  case HW_ACCEL_OP_GEMM:
+    return do_gemm(desc_addr);
+  case HW_ACCEL_OP_REDUCTION:
+    return do_reduction(desc_addr);
+  case HW_ACCEL_OP_SDPA:
+    return do_sdpa(desc_addr);
+  default:
+    printf("[HW ACCEL] Unknown operation code: %u\n", op);
+    return HW_ACCEL_STATUS_ERR_ADDRESS_RANGE;
+  }
 }
