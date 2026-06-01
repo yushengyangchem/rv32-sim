@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "accel_layout.h"
 #include "hw_accel.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +29,7 @@ bool mem_load_bin(const char *filename, uint32_t base_addr) {
   }
 
   fseek(file, 0, SEEK_END);
-  long file_size = ftell(file);
+  int64_t file_size = (int64_t)ftell(file);
   fseek(file, 0, SEEK_SET);
 
   if (file_size < 0) {
@@ -39,7 +40,8 @@ bool mem_load_bin(const char *filename, uint32_t base_addr) {
 
   if ((uint32_t)file_size > MEMORY_PROG_REGION_END ||
       base_addr + (uint32_t)file_size > MEMORY_PROG_REGION_END) {
-    printf("[MEM] Error: Binary too large (%ld bytes), would overflow into "
+    printf("[MEM] Error: Binary too large (%" PRId64
+           " bytes), would overflow into "
            "data region at 0x%08X\n",
            file_size, MEMORY_PROG_REGION_END);
     fclose(file);
