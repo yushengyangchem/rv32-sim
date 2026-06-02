@@ -17,7 +17,7 @@ static uint32_t make_doorbell_val(uint32_t op, uint32_t desc_addr) {
 }
 
 static bool test_hw_accel_gemm(void) {
-  const int32_t expected[4] = {
+  const int32_t expected[] = {
       58,
       64,
       139,
@@ -62,13 +62,13 @@ static bool test_hw_accel_gemm_variable_shape(void) {
   const uint32_t matrix_b_addr = 0x00006100u;
   const uint32_t matrix_c_addr = 0x00006200u;
   const uint32_t desc_addr = 0x00006300u;
-  const int32_t matrix_a[6] = {
+  const int32_t matrix_a[] = {
       1, 2, 3, 4, 5, 6,
   };
-  const int32_t matrix_b[6] = {
+  const int32_t matrix_b[] = {
       7, 8, 9, 10, 11, 12,
   };
-  const int32_t expected[4] = {
+  const int32_t expected[] = {
       58,
       64,
       139,
@@ -257,7 +257,7 @@ static bool test_hw_accel_reduction_invalid_output_rejected(void) {
 }
 
 static bool test_hw_accel_sdpa(void) {
-  const float expected[4] = {
+  const float expected[] = {
       1.6604769f,
       2.6604769f,
       2.3395228f,
@@ -450,7 +450,7 @@ static bool test_hw_accel_sdpa_dimension_overflow_rejected(void) {
 }
 
 static bool test_doorbell_gemm(void) {
-  const int32_t expected[4] = {
+  const int32_t expected[] = {
       58,
       64,
       139,
