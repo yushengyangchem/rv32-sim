@@ -10,13 +10,13 @@ static bool nearly_equal(float actual, float expected, float tolerance) {
 }
 
 static bool test_gemm_reference(void) {
-  const int32_t a[6] = {
+  const int32_t a[] = {
       1, 2, 3, 4, 5, 6,
   };
-  const int32_t b[6] = {
+  const int32_t b[] = {
       7, 8, 9, 10, 11, 12,
   };
-  const int32_t expected[4] = {
+  const int32_t expected[] = {
       58,
       64,
       139,
@@ -58,7 +58,7 @@ static bool test_gemm_reference_scalar_shape(void) {
 }
 
 static bool test_reduction_reference(void) {
-  const float input[6] = {1.0f, -2.0f, 3.5f, 4.0f, -1.5f, 2.0f};
+  const float input[] = {1.0f, -2.0f, 3.5f, 4.0f, -1.5f, 2.0f};
   const float expected = 7.0f;
   const float actual = reduction_sum_f32(input, 6);
 
@@ -87,25 +87,25 @@ static bool test_reduction_reference_empty_input(void) {
 }
 
 static bool test_sdpa_reference(void) {
-  const float q[4] = {
+  const float q[] = {
       1.0f,
       0.0f,
       0.0f,
       1.0f,
   };
-  const float k[4] = {
+  const float k[] = {
       1.0f,
       0.0f,
       0.0f,
       1.0f,
   };
-  const float v[4] = {
+  const float v[] = {
       1.0f,
       2.0f,
       3.0f,
       4.0f,
   };
-  const float expected[4] = {
+  const float expected[] = {
       1.6604769f,
       2.6604769f,
       2.3395228f,
@@ -130,19 +130,19 @@ static bool test_sdpa_reference(void) {
 }
 
 static bool test_sdpa_reference_single_token(void) {
-  const float q[2] = {
+  const float q[] = {
       2.0f,
       -1.0f,
   };
-  const float k[2] = {
+  const float k[] = {
       3.0f,
       4.0f,
   };
-  const float v[2] = {
+  const float v[] = {
       5.0f,
       6.0f,
   };
-  const float expected[2] = {
+  const float expected[] = {
       5.0f,
       6.0f,
   };
