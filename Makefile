@@ -23,6 +23,7 @@ VVP = vvp
 # --- Target RISC-V Configuration ---
 CC_TARGET = riscv32-none-elf-gcc
 OBJCOPY_TARGET = riscv32-none-elf-objcopy
+OBJDUMP_TARGET = riscv32-none-elf-objdump
 # -march=rv32i: Base integer instruction set
 # -mabi=ilp32: 32-bit int, long, pointers
 # -nostdlib -ffreestanding: Bare-metal, no standard C library
@@ -30,10 +31,12 @@ CFLAGS_TARGET = -march=rv32i -mabi=ilp32 -nostdlib -ffreestanding -T tests/link.
 SRC_TARGET = tests/start.S tests/test_accels.c
 ELF_TARGET = tests/test_accels.elf
 BIN_TARGET = tests/test_accels.bin
+ASM_ELF_TARGET = tests/test_accels.elf.asm
+ASM_BIN_TARGET = tests/test_accels.bin.asm
 
 .PHONY: all clean run run-kernels test-kernels test gen-tb-init sim-tb
 
-all: $(BIN_HOST) $(BIN_KERNEL_DEMO) $(BIN_KERNEL_TESTS) $(BIN_HOST_TESTS) $(BIN_TARGET)
+all: $(BIN_HOST) $(BIN_KERNEL_DEMO) $(BIN_KERNEL_TESTS) $(BIN_HOST_TESTS) $(BIN_TARGET) $(ASM_ELF_TARGET) $(ASM_BIN_TARGET)
 
 # Build the host simulator
 $(BIN_HOST): $(SRC_HOST)
@@ -62,8 +65,18 @@ $(BIN_TARGET): $(ELF_TARGET)
 	$(OBJCOPY_TARGET) -O binary $< $@
 	@echo "[BUILD] Target raw binary built: $@"
 
+# Disassemble the ELF to annotated assembly
+$(ASM_ELF_TARGET): $(ELF_TARGET)
+	$(OBJDUMP_TARGET) -d $< > $@
+	@echo "[BUILD] Target ELF disassembly built: $@"
+
+# Disassemble the raw binary to annotated assembly
+$(ASM_BIN_TARGET): $(BIN_TARGET)
+	$(OBJDUMP_TARGET) -D -b binary -m riscv:rv32 $< > $@
+	@echo "[BUILD] Target binary disassembly built: $@"
+
 clean:
-	rm -f $(BIN_HOST) $(BIN_KERNEL_DEMO) $(BIN_KERNEL_TESTS) $(BIN_HOST_TESTS) $(ELF_TARGET) $(BIN_TARGET) $(RTL_SIM)
+	rm -f $(BIN_HOST) $(BIN_KERNEL_DEMO) $(BIN_KERNEL_TESTS) $(BIN_HOST_TESTS) $(ELF_TARGET) $(BIN_TARGET) $(ASM_ELF_TARGET) $(ASM_BIN_TARGET) $(RTL_SIM)
 	@echo "[CLEAN] Removed build artifacts."
 
 # Convenience target to build and run immediately
